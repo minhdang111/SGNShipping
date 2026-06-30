@@ -1,6 +1,5 @@
 package com.sgn.shipping_app.service;
 
-import com.sgn.shipping_app.entity.Customer;
 import com.sgn.shipping_app.entity.Recipient;
 import com.sgn.shipping_app.exception.ResourceNotFoundException;
 import com.sgn.shipping_app.repository.CustomerRepository;
@@ -17,8 +16,8 @@ public class RecipientService {
     private final RecipientRepository recipientRepository;
     private final CustomerRepository customerRepository;
 
-    public Recipient createRecipient (Recipient recipient) {
-        validateCustomerExistsIfProvided(recipient);
+    public Recipient createRecipient(Recipient recipient) {
+        validateCustomerExists(recipient);
         return recipientRepository.save(recipient);
     }
 
@@ -38,7 +37,7 @@ public class RecipientService {
         return recipientRepository.findByCustomer_Id(customerId);
     }
 
-    public Recipient updateRecipient (Long id, Recipient updatedRecipient) {
+    public Recipient updateRecipient(Long id, Recipient updatedRecipient) {
         Recipient existingRecipient = getRecipientById(id);
 
         existingRecipient.setName(updatedRecipient.getName());
@@ -53,12 +52,10 @@ public class RecipientService {
         recipientRepository.delete(existingRecipient);
     }
 
-    private void validateCustomerExistsIfProvided(Recipient recipient) {
-        Customer customer = recipient.getCustomer();
-        if (customer != null && customer.getId() != null) {
-            customerRepository.findById(customer.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Customer not found with ID: " + customer.getId()));
-        }
+    private void validateCustomerExists(Recipient recipient) {
+        Long customerId = recipient.getCustomer().getId();
+        customerRepository.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Customer not found with ID: " + customerId));
     }
 }

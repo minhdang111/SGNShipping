@@ -1,5 +1,7 @@
 # SGN Shipping
 
+🔗 **Live demo:** http://34.9.142.18:5173
+
 A full-stack shipping management app: create customers and recipients, build
 shipments with per-box weight and per-item pricing, and look up past
 shipments by ID or by customer. Built with a Spring Boot REST API and a
@@ -37,7 +39,9 @@ docker compose up --build
 ```
 
 - Frontend: http://localhost:5173
-- Backend API: http://localhost:8080/api
+- Backend API: proxied through the frontend at http://localhost:5173/api
+  (nginx forwards `/api/*` to the backend container and rate-limits it —
+  the backend isn't exposed on the host directly)
 - Postgres: localhost:5432
 
 ### Running the pieces individually (for development)

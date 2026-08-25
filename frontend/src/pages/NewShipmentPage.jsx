@@ -40,6 +40,8 @@ function NewShipmentPage() {
     setPhoneInput(formatPhoneNumber(event.target.value))
     setSearchState('idle')
     setSelectedCustomer(null)
+    setSelectedRecipient(null)
+    setCreatedShipment(null)
   }
 
   async function handleSearch() {
@@ -79,6 +81,7 @@ function NewShipmentPage() {
     setSelectedRecipient(null)
     setShowRecipientForm(false)
     setRecipientsOpen(true)
+    setCreatedShipment(null)
     loadRecipients(customer.id)
   }
 

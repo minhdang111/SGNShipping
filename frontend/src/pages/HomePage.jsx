@@ -9,6 +9,12 @@ function HomePage() {
         <Link to="/new-shipment" className="nav-link">
           New Shipment
         </Link>
+        <Link to="/search-shipment" className="nav-link">
+          Search Shipment
+        </Link>
+        <Link to="/search-customer" className="nav-link">
+          Search Customer
+        </Link>
       </nav>
     </main>
   )

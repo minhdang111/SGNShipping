@@ -1,0 +1,89 @@
+.shipment-form {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.shipment-form h2 {
+  margin: 0;
+}
+
+.shipment-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.shipment-form input,
+.shipment-form select,
+.shipment-form textarea {
+  min-width: 0;
+  padding: 10px 12px;
+  font-size: 16px;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row label {
+  flex: 1;
+}
+
+.repeat-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.repeat-row.item-row {
+  grid-template-columns:
+    minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 0.7fr) minmax(0, 0.7fr) auto;
+}
+
+.remove-row {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.remove-row:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.submit-shipment {
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.submit-shipment:disabled {
+  background: var(--border);
+  color: var(--text);
+  cursor: not-allowed;
+}

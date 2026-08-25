@@ -1,0 +1,32 @@
+.selection-grid .shipment-form {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+
+.add-recipient {
+  margin-top: 16px;
+}
+
+.recipient-form {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.recipient-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.recipient-form input {
+  padding: 10px 12px;
+  font-size: 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+}

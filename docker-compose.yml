@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: shipping-app-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-shipmentdb}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - shipping-app-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME:-shipmentdb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: ./backend
+    container_name: shipping-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-shipmentdb}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    container_name: shipping-app-frontend
+    depends_on:
+      - app
+    ports:
+      - "5173:80"
+
+volumes:
+  shipping-app-pgdata:

@@ -7,6 +7,7 @@ import { formatPhoneNumber, stripPhoneFormatting } from '../utils/phone'
 import './NewShipmentPage.css'
 
 const emptyRecipientForm = { name: '', address: '', phone: '' }
+const emptyCustomerForm = { name: '', address: '', phone: '', email: '' }
 
 function NewShipmentPage() {
   const [phoneInput, setPhoneInput] = useState('')
@@ -26,6 +27,11 @@ function NewShipmentPage() {
 
   const [createdShipment, setCreatedShipment] = useState(null)
 
+  const [customerFormOpen, setCustomerFormOpen] = useState(false)
+  const [customerForm, setCustomerForm] = useState(emptyCustomerForm)
+  const [customerFormErrors, setCustomerFormErrors] = useState({})
+  const [customerFormSubmitting, setCustomerFormSubmitting] = useState(false)
+
   const digits = stripPhoneFormatting(phoneInput)
   const canSearch = digits.length === 10 && searchState !== 'loading'
 
@@ -35,6 +41,13 @@ function NewShipmentPage() {
     recipientForm.address.trim() !== '' &&
     recipientPhoneDigits.length === 10 &&
     !recipientFormSubmitting
+
+  const customerPhoneDigits = stripPhoneFormatting(customerForm.phone)
+  const canSubmitCustomer =
+    customerForm.name.trim() !== '' &&
+    customerForm.address.trim() !== '' &&
+    customerPhoneDigits.length === 10 &&
+    !customerFormSubmitting
 
   function handlePhoneChange(event) {
     setPhoneInput(formatPhoneNumber(event.target.value))
@@ -127,6 +140,46 @@ function NewShipmentPage() {
     }
   }
 
+  function openCustomerForm() {
+    setCustomerForm({ ...emptyCustomerForm, phone: phoneInput })
+    setCustomerFormErrors({})
+    setCustomerFormOpen(true)
+  }
+
+  function handleCustomerFormChange(field, value) {
+    setCustomerForm((previous) => ({
+      ...previous,
+      [field]: field === 'phone' ? formatPhoneNumber(value) : value,
+    }))
+  }
+
+  async function handleCustomerFormSubmit(event) {
+    event.preventDefault()
+    setCustomerFormSubmitting(true)
+    setCustomerFormErrors({})
+    try {
+      const response = await apiClient.post('/customers', {
+        name: customerForm.name.trim(),
+        address: customerForm.address.trim(),
+        phone: customerPhoneDigits,
+        email: customerForm.email.trim() || undefined,
+      })
+      setCustomerFormOpen(false)
+      setPhoneInput(formatPhoneNumber(response.data.phone))
+      setMatches([response.data])
+      setSearchState('found')
+      handleSelectCustomer(response.data)
+    } catch (error) {
+      if (error.response?.status === 400 && error.response.data) {
+        setCustomerFormErrors(error.response.data)
+      } else {
+        setCustomerFormErrors({ _general: 'Could not add customer. Try again.' })
+      }
+    } finally {
+      setCustomerFormSubmitting(false)
+    }
+  }
+
   function handleStartOver() {
     setPhoneInput('')
     setSearchState('idle')
@@ -161,6 +214,14 @@ function NewShipmentPage() {
             Search
           </button>
         </div>
+
+        <button
+          type="button"
+          className="secondary add-recipient"
+          onClick={openCustomerForm}
+        >
+          + Add new customer
+        </button>
 
         {searchState === 'loading' && <p className="status">Searching&hellip;</p>}
         {searchState === 'error' && (
@@ -358,6 +419,87 @@ function NewShipmentPage() {
               </div>
             </form>
           )}
+        </Modal>
+      )}
+
+      {customerFormOpen && (
+        <Modal title="Add new customer" onClose={() => setCustomerFormOpen(false)}>
+          <form className="recipient-form" onSubmit={handleCustomerFormSubmit}>
+            {customerFormErrors._general && (
+              <p className="status error">{customerFormErrors._general}</p>
+            )}
+
+            <label>
+              Name
+              <input
+                type="text"
+                value={customerForm.name}
+                onChange={(event) =>
+                  handleCustomerFormChange('name', event.target.value)
+                }
+              />
+              {customerFormErrors.name && (
+                <span className="field-error">{customerFormErrors.name}</span>
+              )}
+            </label>
+
+            <label>
+              Address
+              <input
+                type="text"
+                value={customerForm.address}
+                onChange={(event) =>
+                  handleCustomerFormChange('address', event.target.value)
+                }
+              />
+              {customerFormErrors.address && (
+                <span className="field-error">{customerFormErrors.address}</span>
+              )}
+            </label>
+
+            <label>
+              Phone
+              <input
+                type="tel"
+                inputMode="numeric"
+                maxLength={14}
+                value={customerForm.phone}
+                onChange={(event) =>
+                  handleCustomerFormChange('phone', event.target.value)
+                }
+              />
+              {customerFormErrors.phone && (
+                <span className="field-error">{customerFormErrors.phone}</span>
+              )}
+            </label>
+
+            <label>
+              Email (optional)
+              <input
+                type="email"
+                value={customerForm.email}
+                onChange={(event) =>
+                  handleCustomerFormChange('email', event.target.value)
+                }
+              />
+              {customerFormErrors.email && (
+                <span className="field-error">{customerFormErrors.email}</span>
+              )}
+            </label>
+
+            <div className="form-actions">
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setCustomerFormOpen(false)}
+              >
+                Cancel
+              </button>
+              <button type="submit" disabled={!canSubmitCustomer}>
+                {customerFormSubmitting ? 'Adding…' : 'Add customer'}
+              </button>
+            </div>
+          </form>
         </Modal>
       )}
     </main>

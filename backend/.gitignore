@@ -38,6 +38,3 @@ out/
 
 ### H2 (legacy) ###
 data/
-
-### Secrets ###
-.env

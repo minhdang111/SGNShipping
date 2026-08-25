@@ -101,6 +101,28 @@ class CustomerServiceTest {
         verify(customerRepository).findAll();
     }
 
+    // ── getCustomerByPhone ────────────────────────────────────────────────────
+    @Test
+    void getCustomerByPhone_matchingPhone_returnsCustomers() {
+        List<Customer> customers = List.of(makeCustomer(1L));
+        when(customerRepository.findByPhone("5551234")).thenReturn(customers);
+
+        List<Customer> result = customerService.getCustomerByPhone("5551234");
+
+        assertEquals(1, result.size());
+        assertEquals("John Doe", result.get(0).getName());
+        verify(customerRepository).findByPhone("5551234");
+    }
+
+    @Test
+    void getCustomerByPhone_noMatch_returnsEmptyList() {
+        when(customerRepository.findByPhone("0000000000")).thenReturn(List.of());
+
+        List<Customer> result = customerService.getCustomerByPhone("0000000000");
+
+        assertTrue(result.isEmpty());
+    }
+
     // ── updateCustomer ───────────────────────────────────────────────────────
     @Test
     void updateCustomer_existingId_updatesAndReturnsCustomer() {

@@ -46,6 +46,16 @@ public class CustomerController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/by-phone")
+    public ResponseEntity<List<CustomerResponse>> getCustomerByPhone(
+            @RequestParam String phone) {
+        List<CustomerResponse> responses = customerService.getCustomerByPhone(phone)
+                .stream()
+                .map(CustomerMapper::toResponse)
+                .toList();
+        return ResponseEntity.ok(responses);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<CustomerResponse> updateCustomer(
             @PathVariable Long id,

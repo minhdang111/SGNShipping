@@ -27,6 +27,10 @@ public class CustomerService {
         return customerRepository.findAll();
     }
 
+    public List<Customer> getCustomerByPhone(String phone) {
+        return customerRepository.findByPhone(phone);
+    }
+
     public Customer updateCustomer(Long id, Customer updatedCustomer) {
         Customer existingCustomer = getCustomerById(id);
 

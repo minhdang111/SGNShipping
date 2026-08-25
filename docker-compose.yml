@@ -17,7 +17,7 @@ services:
       retries: 5
 
   app:
-    build: .
+    build: ./backend
     container_name: shipping-app
     depends_on:
       postgres:

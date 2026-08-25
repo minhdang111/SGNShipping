@@ -60,16 +60,57 @@ npm run dev
 
 ## API overview
 
-| Resource | Endpoints |
-|---|---|
-| Customers | `POST /api/customers`, `GET /api/customers`, `GET /api/customers/{id}`, `GET /api/customers/by-phone?phone=`, `PUT /api/customers/{id}`, `DELETE /api/customers/{id}` |
-| Recipients | `POST /api/recipients`, `GET /api/recipients`, `GET /api/recipients/{id}`, `GET /api/recipients/by-customer/{customerId}`, `PUT /api/recipients/{id}`, `DELETE /api/recipients/{id}` |
-| Shipments | `POST /api/shipments`, `GET /api/shipments`, `GET /api/shipments/{id}`, `GET /api/shipments/by-customer-phone?phone=`, `GET /api/shipments/by-status/{status}`, `PATCH /api/shipments/{id}/tracking-number`, `PATCH /api/shipments/{id}/mark-delivered`, `DELETE /api/shipments/{id}` |
+All endpoints are under `/api` and exchange JSON. There's no auth — see
+[Known limitations](#known-limitations).
 
-Pricing: each box is charged by weight ($4.50/lb within the city zone,
-$5.00/lb otherwise); package items are charged per pound or per item,
-whichever pricing type is set. The shipment's total cost is the sum of
-both.
+### Customers
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/customers` | Create a customer. Body: `name`, `address`, `phone` (required), `email` (optional, validated). Returns `201` with the created customer. |
+| `GET` | `/customers` | List every customer. |
+| `GET` | `/customers/{id}` | Get one customer by ID, or `404` if it doesn't exist. |
+| `GET` | `/customers/by-phone?phone=` | Look up customers by exact phone match (digits only, e.g. `6512297136`). Returns a list — empty if no match. |
+| `PUT` | `/customers/{id}` | Replace a customer's name/address/phone/email. |
+| `DELETE` | `/customers/{id}` | Delete a customer, cascading to their recipients and shipments. |
+
+A customer response looks like: `{ id, name, address, phone, email }`.
+
+### Recipients
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/recipients` | Create a recipient under a customer. Body: `name`, `address`, `phone`, `customerId` (all required). `404`s if `customerId` doesn't exist. |
+| `GET` | `/recipients` | List every recipient. |
+| `GET` | `/recipients/{id}` | Get one recipient by ID. |
+| `GET` | `/recipients/by-customer/{customerId}` | List every recipient that belongs to a given customer. |
+| `PUT` | `/recipients/{id}` | Update a recipient's name/address/phone (their `customerId` can't be changed this way). |
+| `DELETE` | `/recipients/{id}` | Delete a recipient. |
+
+A recipient response looks like: `{ id, name, address, phone, customerId }`.
+
+### Shipments
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/shipments` | Create a shipment. Body: `customerId`, `recipientId`, `description`, `zone` (`CITY` or `OTHER`), `declaredValue` (optional), `boxes` (at least one, each `{ label?, weight }`), `packageItems` (optional, each `{ itemName, pricingType: PER_POUND \| PER_EACH, quantity, rate }`). Pricing and `totalCost` are computed server-side — see below. |
+| `GET` | `/shipments` | List every shipment as a lightweight summary (`id`, `recipientName`, `description`, `zone`, `status`, `totalCost`, `createdDate`) — no boxes/items. |
+| `GET` | `/shipments/{id}` | Get one shipment's full detail: nested `customer`, `recipient`, all `boxes`, all `packageItems`, `status`, `trackingNumber`, `totalCost`, `createdDate`. |
+| `GET` | `/shipments/by-customer-phone?phone=` | List shipment summaries for a customer, matched by phone (substring match, not exact). |
+| `GET` | `/shipments/by-status/{status}` | List shipment summaries filtered by status (`PENDING` or `DELIVERED`). |
+| `PATCH` | `/shipments/{id}/tracking-number` | Set the tracking number. Body: `{ trackingNumber }`. |
+| `PATCH` | `/shipments/{id}/mark-delivered` | Flip status to `DELIVERED`. No body. |
+| `DELETE` | `/shipments/{id}` | Delete a shipment, cascading to its boxes and package items. |
+
+**Pricing** is calculated automatically on creation, never sent by the
+client: each box is charged by weight ($4.50/lb in the `CITY` zone,
+$5.00/lb otherwise), and each package item is charged `quantity × rate`
+(per pound or per item, depending on its `pricingType`). `totalCost` is
+the sum of both.
+
+Every `404`/validation error returns a JSON body like
+`{ status, error, message, timestamp }` (or, for validation failures, a
+`{ field: message }` map) via a global exception handler.
 
 ## Project structure
 

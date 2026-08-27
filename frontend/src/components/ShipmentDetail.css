@@ -19,6 +19,44 @@
   margin: 0;
 }
 
+.detail-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detail-header-actions button.secondary {
+  width: auto;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.tracking-field {
+  grid-column: span 2;
+}
+
+.tracking-row {
+  display: flex;
+  gap: 8px;
+}
+
+.tracking-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.tracking-row button.secondary {
+  width: auto;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
 .status-pill {
   padding: 4px 12px;
   border-radius: 999px;
@@ -28,6 +66,11 @@
   letter-spacing: 0.03em;
   background: var(--accent-bg);
   color: var(--text-h);
+}
+
+.status-pill.delivered {
+  background: #d7f2e0;
+  color: #146c3a;
 }
 
 .detail-meta {

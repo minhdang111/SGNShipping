@@ -75,7 +75,11 @@ function SearchShipmentPage() {
       </section>
 
       {searchState === 'found' && shipment && (
-        <ShipmentDetail shipment={shipment} />
+        <ShipmentDetail
+          key={shipment.id}
+          shipment={shipment}
+          onUpdate={setShipment}
+        />
       )}
     </main>
   )

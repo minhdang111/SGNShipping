@@ -196,7 +196,11 @@ function SearchCustomerPage() {
         <p className="status">Loading shipment&hellip;</p>
       )}
       {shipmentDetailState === 'loaded' && shipmentDetail && (
-        <ShipmentDetail shipment={shipmentDetail} />
+        <ShipmentDetail
+          key={shipmentDetail.id}
+          shipment={shipmentDetail}
+          onUpdate={setShipmentDetail}
+        />
       )}
     </main>
   )

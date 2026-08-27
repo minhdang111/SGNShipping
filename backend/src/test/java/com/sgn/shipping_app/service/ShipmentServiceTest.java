@@ -1,5 +1,6 @@
 package com.sgn.shipping_app.service;
 
+import com.sgn.shipping_app.dto.shipment.TodaySummaryResponse;
 import com.sgn.shipping_app.entity.*;
 import com.sgn.shipping_app.exception.ResourceNotFoundException;
 import com.sgn.shipping_app.repository.CustomerRepository;
@@ -11,6 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -256,6 +259,72 @@ class ShipmentServiceTest {
 
         assertEquals(1, result.size());
         assertEquals(ShipmentStatus.PENDING, result.get(0).getStatus());
+    }
+
+    // ── getShipmentsByDateRange ───────────────────────────────────────────────
+    @Test
+    void getShipmentsByDateRange_matchingRange_returnsShipments() {
+        Customer customer = makeCustomer(1L);
+        Recipient recipient = makeRecipient(1L, customer);
+        List<Shipment> shipments = List.of(makeShipment(6362L, customer, recipient));
+
+        LocalDate start = LocalDate.of(2026, 8, 1);
+        LocalDate end = LocalDate.of(2026, 8, 31);
+
+        when(shipmentRepository.findByCreatedDateBetween(
+                start.atStartOfDay(), end.atTime(LocalTime.MAX)))
+                .thenReturn(shipments);
+
+        List<Shipment> result = shipmentService.getShipmentsByDateRange(start, end);
+
+        assertEquals(1, result.size());
+        verify(shipmentRepository).findByCreatedDateBetween(
+                start.atStartOfDay(), end.atTime(LocalTime.MAX));
+    }
+
+    @Test
+    void getShipmentsByDateRange_noMatches_returnsEmptyList() {
+        LocalDate start = LocalDate.of(2026, 1, 1);
+        LocalDate end = LocalDate.of(2026, 1, 31);
+
+        when(shipmentRepository.findByCreatedDateBetween(
+                start.atStartOfDay(), end.atTime(LocalTime.MAX)))
+                .thenReturn(List.of());
+
+        List<Shipment> result = shipmentService.getShipmentsByDateRange(start, end);
+
+        assertTrue(result.isEmpty());
+    }
+
+    // ── getTodaySummary ───────────────────────────────────────────────────────
+    @Test
+    void getTodaySummary_shipmentsToday_returnsCountAndTotalWeight() {
+        Customer customer = makeCustomer(1L);
+        Recipient recipient = makeRecipient(1L, customer);
+        // makeShipment gives each shipment one box weighing 5.0
+        List<Shipment> shipments = List.of(
+                makeShipment(6362L, customer, recipient),
+                makeShipment(6363L, customer, recipient)
+        );
+
+        when(shipmentRepository.findByCreatedDateBetween(any(), any()))
+                .thenReturn(shipments);
+
+        TodaySummaryResponse result = shipmentService.getTodaySummary();
+
+        assertEquals(2, result.shipmentCount());
+        assertEquals(10.0, result.totalWeight());
+    }
+
+    @Test
+    void getTodaySummary_noShipmentsToday_returnsZeroes() {
+        when(shipmentRepository.findByCreatedDateBetween(any(), any()))
+                .thenReturn(List.of());
+
+        TodaySummaryResponse result = shipmentService.getTodaySummary();
+
+        assertEquals(0, result.shipmentCount());
+        assertEquals(0.0, result.totalWeight());
     }
 
     // ── updateTrackingNumber ──────────────────────────────────────────────────

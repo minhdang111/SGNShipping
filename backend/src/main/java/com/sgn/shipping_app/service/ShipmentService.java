@@ -1,5 +1,6 @@
 package com.sgn.shipping_app.service;
 
+import com.sgn.shipping_app.dto.shipment.TodaySummaryResponse;
 import com.sgn.shipping_app.entity.*;
 import com.sgn.shipping_app.exception.ResourceNotFoundException;
 import com.sgn.shipping_app.repository.CustomerRepository;
@@ -8,6 +9,9 @@ import com.sgn.shipping_app.repository.ShipmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -18,6 +22,10 @@ public class ShipmentService {
     private final CustomerRepository customerRepository;
     private final RecipientRepository recipientRepository;
     private final PricingService pricingService;
+
+    // Business operates out of Saint Paul, MN — use its local calendar day for
+    // "today", not the server's ambient timezone (which is UTC in Docker).
+    private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/Chicago");
 
     public Shipment createShipment(Shipment shipment) {
         Customer customer = customerRepository.findById(shipment.getCustomer().getId())
@@ -59,6 +67,24 @@ public class ShipmentService {
 
     public List<Shipment> getShipmentsByStatus(ShipmentStatus status) {
         return shipmentRepository.findByStatus(status);
+    }
+
+    public List<Shipment> getShipmentsByDateRange(LocalDate startDate, LocalDate endDate) {
+        return shipmentRepository.findByCreatedDateBetween(
+                startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
+    }
+
+    public TodaySummaryResponse getTodaySummary() {
+        LocalDate today = LocalDate.now(BUSINESS_ZONE);
+        List<Shipment> todaysShipments = shipmentRepository.findByCreatedDateBetween(
+                today.atStartOfDay(), today.atTime(LocalTime.MAX));
+
+        double totalWeight = todaysShipments.stream()
+                .flatMap(shipment -> shipment.getBoxes().stream())
+                .mapToDouble(Box::getWeight)
+                .sum();
+
+        return new TodaySummaryResponse(todaysShipments.size(), totalWeight);
     }
 
     public Shipment updateTrackingNumber(Long id, String trackingNumber) {

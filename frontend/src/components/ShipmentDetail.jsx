@@ -1,7 +1,54 @@
+import { useState } from 'react'
+import apiClient from '../api/client'
 import { formatPhoneNumber } from '../utils/phone'
 import './ShipmentDetail.css'
 
-function ShipmentDetail({ shipment }) {
+function ShipmentDetail({ shipment, onUpdate = () => {} }) {
+  const [trackingInput, setTrackingInput] = useState(
+    shipment.trackingNumber || '',
+  )
+  const [trackingSubmitting, setTrackingSubmitting] = useState(false)
+  const [trackingError, setTrackingError] = useState('')
+
+  const [deliverSubmitting, setDeliverSubmitting] = useState(false)
+  const [deliverError, setDeliverError] = useState('')
+
+  const canSaveTracking =
+    trackingInput.trim() !== '' &&
+    trackingInput.trim() !== (shipment.trackingNumber || '') &&
+    !trackingSubmitting
+
+  async function handleSaveTracking() {
+    setTrackingSubmitting(true)
+    setTrackingError('')
+    try {
+      const response = await apiClient.patch(
+        `/shipments/${shipment.id}/tracking-number`,
+        { trackingNumber: trackingInput.trim() },
+      )
+      onUpdate(response.data)
+    } catch {
+      setTrackingError('Could not save tracking number. Try again.')
+    } finally {
+      setTrackingSubmitting(false)
+    }
+  }
+
+  async function handleMarkDelivered() {
+    setDeliverSubmitting(true)
+    setDeliverError('')
+    try {
+      const response = await apiClient.patch(
+        `/shipments/${shipment.id}/mark-delivered`,
+      )
+      onUpdate(response.data)
+    } catch {
+      setDeliverError('Could not mark as delivered. Try again.')
+    } finally {
+      setDeliverSubmitting(false)
+    }
+  }
+
   return (
     <>
       <div className="selection-grid">
@@ -27,10 +74,23 @@ function ShipmentDetail({ shipment }) {
       <div className="shipment-detail">
         <div className="detail-header">
           <h2>Shipment LS{shipment.id}</h2>
-          <span className={`status-pill ${shipment.status.toLowerCase()}`}>
-            {shipment.status}
-          </span>
+          <div className="detail-header-actions">
+            <span className={`status-pill ${shipment.status.toLowerCase()}`}>
+              {shipment.status}
+            </span>
+            {shipment.status === 'PENDING' && (
+              <button
+                type="button"
+                className="secondary"
+                onClick={handleMarkDelivered}
+                disabled={deliverSubmitting}
+              >
+                {deliverSubmitting ? 'Updating…' : 'Mark delivered'}
+              </button>
+            )}
+          </div>
         </div>
+        {deliverError && <p className="status error">{deliverError}</p>}
 
         <p className="info-detail">{shipment.description}</p>
 
@@ -41,9 +101,27 @@ function ShipmentDetail({ shipment }) {
               {shipment.zone === 'CITY' ? 'City' : 'Other'}
             </p>
           </div>
-          <div>
+          <div className="tracking-field">
             <p className="info-label">Tracking #</p>
-            <p className="info-detail">{shipment.trackingNumber || '—'}</p>
+            <div className="tracking-row">
+              <input
+                type="text"
+                value={trackingInput}
+                onChange={(event) => setTrackingInput(event.target.value)}
+                placeholder="Not set"
+              />
+              <button
+                type="button"
+                className="secondary"
+                onClick={handleSaveTracking}
+                disabled={!canSaveTracking}
+              >
+                {trackingSubmitting ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+            {trackingError && (
+              <p className="field-error">{trackingError}</p>
+            )}
           </div>
           <div>
             <p className="info-label">Declared value</p>

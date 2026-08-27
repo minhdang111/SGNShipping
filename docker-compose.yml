@@ -26,6 +26,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-shipmentdb}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      TZ: America/Chicago
 
   frontend:
     build:

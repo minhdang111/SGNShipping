@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import apiClient from '../api/client'
 import ShipmentDetail from '../components/ShipmentDetail'
+import './SearchShipmentPage.css'
 
 function SearchShipmentPage() {
   const [idInput, setIdInput] = useState('')
@@ -13,6 +14,12 @@ function SearchShipmentPage() {
   const [dateRangeState, setDateRangeState] = useState('idle') // idle | loading | loaded | error
   const [dateResults, setDateResults] = useState([])
   const [selectedResultId, setSelectedResultId] = useState(null)
+  const [statusFilter, setStatusFilter] = useState('ALL')
+
+  const filteredDateResults =
+    statusFilter === 'ALL'
+      ? dateResults
+      : dateResults.filter((result) => result.status === statusFilter)
 
   const trimmedId = idInput.trim()
   const canSearch = /^\d+$/.test(trimmedId) && searchState !== 'loading'
@@ -52,6 +59,7 @@ function SearchShipmentPage() {
 
   async function handleDateRangeSearch() {
     setDateRangeState('loading')
+    setStatusFilter('ALL')
     try {
       const response = await apiClient.get('/shipments/by-date-range', {
         params: { start: startDate, end: endDate },
@@ -146,14 +154,36 @@ function SearchShipmentPage() {
             Something went wrong loading shipments. Try again.
           </p>
         )}
+
+        {dateRangeState === 'loaded' && dateResults.length > 0 && (
+          <label className="status-filter">
+            Status
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+            >
+              <option value="ALL">All</option>
+              <option value="PENDING">Pending</option>
+              <option value="DELIVERED">Delivered</option>
+            </select>
+          </label>
+        )}
+
         {dateRangeState === 'loaded' && dateResults.length === 0 && (
           <p className="status not-found">
             No shipments found in that date range.
           </p>
         )}
-        {dateRangeState === 'loaded' && dateResults.length > 0 && (
+        {dateRangeState === 'loaded' &&
+          dateResults.length > 0 &&
+          filteredDateResults.length === 0 && (
+            <p className="status not-found">
+              No {statusFilter.toLowerCase()} shipments in that date range.
+            </p>
+          )}
+        {dateRangeState === 'loaded' && filteredDateResults.length > 0 && (
           <ul className="results">
-            {dateResults.map((result) => (
+            {filteredDateResults.map((result) => (
               <li key={result.id}>
                 <button
                   type="button"

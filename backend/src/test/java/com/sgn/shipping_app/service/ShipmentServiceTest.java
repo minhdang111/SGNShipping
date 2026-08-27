@@ -1,5 +1,6 @@
 package com.sgn.shipping_app.service;
 
+import com.sgn.shipping_app.dto.shipment.TodaySummaryResponse;
 import com.sgn.shipping_app.entity.*;
 import com.sgn.shipping_app.exception.ResourceNotFoundException;
 import com.sgn.shipping_app.repository.CustomerRepository;
@@ -293,6 +294,37 @@ class ShipmentServiceTest {
         List<Shipment> result = shipmentService.getShipmentsByDateRange(start, end);
 
         assertTrue(result.isEmpty());
+    }
+
+    // ── getTodaySummary ───────────────────────────────────────────────────────
+    @Test
+    void getTodaySummary_shipmentsToday_returnsCountAndTotalWeight() {
+        Customer customer = makeCustomer(1L);
+        Recipient recipient = makeRecipient(1L, customer);
+        // makeShipment gives each shipment one box weighing 5.0
+        List<Shipment> shipments = List.of(
+                makeShipment(6362L, customer, recipient),
+                makeShipment(6363L, customer, recipient)
+        );
+
+        when(shipmentRepository.findByCreatedDateBetween(any(), any()))
+                .thenReturn(shipments);
+
+        TodaySummaryResponse result = shipmentService.getTodaySummary();
+
+        assertEquals(2, result.shipmentCount());
+        assertEquals(10.0, result.totalWeight());
+    }
+
+    @Test
+    void getTodaySummary_noShipmentsToday_returnsZeroes() {
+        when(shipmentRepository.findByCreatedDateBetween(any(), any()))
+                .thenReturn(List.of());
+
+        TodaySummaryResponse result = shipmentService.getTodaySummary();
+
+        assertEquals(0, result.shipmentCount());
+        assertEquals(0.0, result.totalWeight());
     }
 
     // ── updateTrackingNumber ──────────────────────────────────────────────────

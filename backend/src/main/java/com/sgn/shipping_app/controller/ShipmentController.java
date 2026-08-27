@@ -69,6 +69,11 @@ public class ShipmentController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/summary/today")
+    public ResponseEntity<TodaySummaryResponse> getTodaySummary() {
+        return ResponseEntity.ok(shipmentService.getTodaySummary());
+    }
+
     @GetMapping("/by-date-range")
     public ResponseEntity<List<ShipmentSummaryResponse>> getShipmentsByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,

@@ -5,6 +5,32 @@
   text-align: left;
 }
 
+.today-summary {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0 28px;
+}
+
+.summary-stat {
+  flex: 1;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.summary-value {
+  margin: 0 0 4px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.summary-label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
 .navbar {
   display: flex;
   gap: 12px;

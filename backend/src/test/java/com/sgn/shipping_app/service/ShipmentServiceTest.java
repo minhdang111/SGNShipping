@@ -11,6 +11,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -256,6 +258,41 @@ class ShipmentServiceTest {
 
         assertEquals(1, result.size());
         assertEquals(ShipmentStatus.PENDING, result.get(0).getStatus());
+    }
+
+    // ── getShipmentsByDateRange ───────────────────────────────────────────────
+    @Test
+    void getShipmentsByDateRange_matchingRange_returnsShipments() {
+        Customer customer = makeCustomer(1L);
+        Recipient recipient = makeRecipient(1L, customer);
+        List<Shipment> shipments = List.of(makeShipment(6362L, customer, recipient));
+
+        LocalDate start = LocalDate.of(2026, 8, 1);
+        LocalDate end = LocalDate.of(2026, 8, 31);
+
+        when(shipmentRepository.findByCreatedDateBetween(
+                start.atStartOfDay(), end.atTime(LocalTime.MAX)))
+                .thenReturn(shipments);
+
+        List<Shipment> result = shipmentService.getShipmentsByDateRange(start, end);
+
+        assertEquals(1, result.size());
+        verify(shipmentRepository).findByCreatedDateBetween(
+                start.atStartOfDay(), end.atTime(LocalTime.MAX));
+    }
+
+    @Test
+    void getShipmentsByDateRange_noMatches_returnsEmptyList() {
+        LocalDate start = LocalDate.of(2026, 1, 1);
+        LocalDate end = LocalDate.of(2026, 1, 31);
+
+        when(shipmentRepository.findByCreatedDateBetween(
+                start.atStartOfDay(), end.atTime(LocalTime.MAX)))
+                .thenReturn(List.of());
+
+        List<Shipment> result = shipmentService.getShipmentsByDateRange(start, end);
+
+        assertTrue(result.isEmpty());
     }
 
     // ── updateTrackingNumber ──────────────────────────────────────────────────

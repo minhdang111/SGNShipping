@@ -6,10 +6,12 @@ import com.sgn.shipping_app.entity.ShipmentStatus;
 import com.sgn.shipping_app.service.ShipmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -61,6 +63,18 @@ public class ShipmentController {
             @PathVariable ShipmentStatus status) {
         List<ShipmentSummaryResponse> responses = shipmentService
                 .getShipmentsByStatus(status)
+                .stream()
+                .map(ShipmentMapper::toSummaryResponse)
+                .toList();
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/by-date-range")
+    public ResponseEntity<List<ShipmentSummaryResponse>> getShipmentsByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+        List<ShipmentSummaryResponse> responses = shipmentService
+                .getShipmentsByDateRange(start, end)
                 .stream()
                 .map(ShipmentMapper::toSummaryResponse)
                 .toList();

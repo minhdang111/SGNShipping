@@ -8,6 +8,8 @@ import com.sgn.shipping_app.repository.ShipmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -59,6 +61,11 @@ public class ShipmentService {
 
     public List<Shipment> getShipmentsByStatus(ShipmentStatus status) {
         return shipmentRepository.findByStatus(status);
+    }
+
+    public List<Shipment> getShipmentsByDateRange(LocalDate startDate, LocalDate endDate) {
+        return shipmentRepository.findByCreatedDateBetween(
+                startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
     }
 
     public Shipment updateTrackingNumber(Long id, String trackingNumber) {
